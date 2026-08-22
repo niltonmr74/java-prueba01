@@ -28,10 +28,10 @@ Feature: Gestion de empleados
     When intento registrar un empleado con id 10 nombre "Pedro" apellido "Ruiz" edad 25 salario -100.0
     Then debe mostrarse el error "El salario no puede ser negativo"
 
-  Scenario: No permitir buscar id inexistente
+  Scenario: Buscar id inexistente devuelve resultado vacio
     Given un servicio de empleados vacio
     When intento buscar empleado con id 99
-    Then debe mostrarse el error "No existe un empleado con id 99"
+    Then el resultado de la busqueda debe estar vacio
 
   Scenario: No permitir eliminar id inexistente
     Given un servicio de empleados vacio

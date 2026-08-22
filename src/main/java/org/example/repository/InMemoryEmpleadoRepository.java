@@ -4,31 +4,26 @@ import org.example.model.Empleado;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryEmpleadoRepository implements EmpleadoRepository {
     private final List<Empleado> empleados = new ArrayList<>();
 
     @Override
     public void guardar(Empleado empleado) {
-        //agregar print para indicar que se está guardando un empleado en memoria
         System.out.println("Guardando empleado con id: " + empleado.getId());
-
         empleados.add(empleado);
     }
 
     @Override
-    public Empleado buscarPorId(Long id) {
-        //agregar print para indicar que se está buscando un empleado por id en memoria y el resultado
+    public Optional<Empleado> buscarPorId(Long id) {
         System.out.println("Buscando empleado con id: " + id);
 
-        for (Empleado empleado : empleados) {
-            if (empleado.getId().equals(id)) {
-                return empleado;
-            }
-        }
-        return null;
+        return empleados.stream()
+                .filter(empleado -> empleado.getId().equals(id))
+                .findFirst();
     }
-    //agregar print para indicar que se está listando todos los empleados en memoria
+
     @Override
     public List<Empleado> listarTodos() {
         System.out.println("Listando todos los empleados en memoria");
@@ -37,7 +32,6 @@ public class InMemoryEmpleadoRepository implements EmpleadoRepository {
 
     @Override
     public void actualizar(Empleado empleadoActualizado) {
-        //agregar print para indicar que se está actualizando un empleado en memoria con el detalle del empleado actualizado
         System.out.println("Actualizando empleado con id: " + empleadoActualizado.getId());
 
         for (int i = 0; i < empleados.size(); i++) {
@@ -53,7 +47,6 @@ public class InMemoryEmpleadoRepository implements EmpleadoRepository {
 
     @Override
     public void eliminarPorId(Long id) {
-        //agregar print para indicar que se está eliminando un empleado por id en memoria
         System.out.println("Eliminando empleado con id: " + id);
 
         for (int i = 0; i < empleados.size(); i++) {

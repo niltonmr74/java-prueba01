@@ -17,7 +17,8 @@ public class EmpleadoApp {
         System.out.println("=== Lista inicial ===");
         imprimirEmpleados();
 
-        Empleado encontrado = empleadoService.buscarPorId(1L);
+        Empleado encontrado = empleadoService.buscarPorId(1L)
+                .orElseThrow(() -> new IllegalArgumentException("No existe un empleado con id 1"));
         System.out.println("Buscado por id=1: " + encontrado.getNombre() + " " + encontrado.getApellido());
 
         Empleado empleadoActualizado = new Empleado(2L, "Ana", "Martinez", 28, 2800.0);

@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class EmpleadoSteps {
     private EmpleadoService empleadoService;
     private IllegalArgumentException ultimaExcepcion;
+    private boolean resultadoBusquedaVacio;
 
     @Given("un servicio de empleados vacio")
     public void unServicioDeEmpleadosVacio() {
@@ -51,12 +52,8 @@ public class EmpleadoSteps {
 
     @When("intento buscar empleado con id {long}")
     public void intentoBuscarEmpleadoConId(Long id) {
-        try {
-            empleadoService.buscarPorId(id);
-            ultimaExcepcion = null;
-        } catch (IllegalArgumentException exception) {
-            ultimaExcepcion = exception;
-        }
+        resultadoBusquedaVacio = empleadoService.buscarPorId(id).isEmpty();
+        ultimaExcepcion = null;
     }
 
     @When("intento eliminar empleado con id {long}")
@@ -76,7 +73,8 @@ public class EmpleadoSteps {
 
     @Then("el empleado con id {long} debe tener apellido {string} y salario {double}")
     public void elEmpleadoConIdDebeTenerApellidoYSalario(Long id, String apellidoEsperado, Double salarioEsperado) {
-        Empleado empleado = empleadoService.buscarPorId(id);
+        Empleado empleado = empleadoService.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("No existe un empleado con id " + id));
         assertEquals(apellidoEsperado, empleado.getApellido());
         assertEquals(salarioEsperado, empleado.getSalario());
     }
@@ -85,5 +83,10 @@ public class EmpleadoSteps {
     public void debeMostrarseElError(String mensajeEsperado) {
         assertNotNull(ultimaExcepcion);
         assertEquals(mensajeEsperado, ultimaExcepcion.getMessage());
+    }
+
+    @Then("el resultado de la busqueda debe estar vacio")
+    public void elResultadoDeLaBusquedaDebeEstarVacio() {
+        assertEquals(true, resultadoBusquedaVacio);
     }
 }

@@ -3,7 +3,9 @@ package org.example.service;
 import org.example.model.Empleado;
 import org.example.repository.EmpleadoRepository;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class EmpleadoService {
     private final EmpleadoRepository empleadoRepository;
@@ -14,7 +16,8 @@ public class EmpleadoService {
 
     public void registrarEmpleado(Empleado empleado) {
         validarEmpleado(empleado);
-        if (empleadoRepository.buscarPorId(empleado.getId()) != null) {
+
+        if (empleadoRepository.buscarPorId(empleado.getId()).isPresent()) {
             throw new IllegalArgumentException("Ya existe un empleado con id " + empleado.getId());
         }
 
@@ -25,28 +28,65 @@ public class EmpleadoService {
         return empleadoRepository.listarTodos();
     }
 
-    public Empleado buscarPorId(Long id) {
+    public Optional<Empleado> buscarPorId(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser null");
+            return Optional.empty();
         }
 
-        Empleado empleado = empleadoRepository.buscarPorId(id);
-        if (empleado == null) {
-            throw new IllegalArgumentException("No existe un empleado con id " + id);
+        return empleadoRepository.listarTodos()
+                .stream()
+                .filter(empleado -> empleado.getId().equals(id))
+                .findFirst();
+    }
+
+    public List<Empleado> buscarPorNombre(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            return List.of();
         }
 
-        return empleado;
+        return empleadoRepository.listarTodos()
+                .stream()
+                .filter(empleado -> empleado.getNombre().equalsIgnoreCase(nombre))
+                .toList();
+    }
+
+    public List<Empleado> listarEmpleadosOrdenadosPorApellido() {
+        return empleadoRepository.listarTodos()
+                .stream()
+                .sorted(Comparator.comparing(Empleado::getApellido))
+                .toList();
+    }
+
+    public List<Empleado> listarEmpleadosConSalarioMayor(double salarioMinimo) {
+        return empleadoRepository.listarTodos()
+                .stream()
+                .filter(empleado -> empleado.getSalario() > salarioMinimo)
+                .toList();
+    }
+
+    public double totalSalarios() {
+        return empleadoRepository.listarTodos()
+                .stream()
+                .mapToDouble(Empleado::getSalario)
+                .sum();
     }
 
     public void actualizarEmpleado(Empleado empleado) {
         validarEmpleado(empleado);
-        buscarPorId(empleado.getId());
+        buscarPorId(empleado.getId())
+                .orElseThrow(() -> new IllegalArgumentException("No existe un empleado con id " + empleado.getId()));
         empleadoRepository.actualizar(empleado);
     }
 
     public void eliminarEmpleado(Long id) {
-        buscarPorId(id);
-        empleadoRepository.eliminarPorId(id);
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser null");
+        }
+
+        Empleado empleado = buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("No existe un empleado con id " + id));
+
+        empleadoRepository.eliminarPorId(empleado.getId());
     }
 
     private void validarEmpleado(Empleado empleado) {

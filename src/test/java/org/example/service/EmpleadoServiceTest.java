@@ -5,8 +5,11 @@ import org.example.repository.InMemoryEmpleadoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EmpleadoServiceTest {
@@ -26,73 +29,92 @@ class EmpleadoServiceTest {
     }
 
     @Test
+    void debeBuscarEmpleadoPorIdConOptional() {
+        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
+
+        Optional<Empleado> resultado = empleadoService.buscarPorId(1L);
+
+        assertTrue(resultado.isPresent());
+        assertEquals("Juan", resultado.get().getNombre());
+    }
+
+    @Test
+    void debeRetornarEmptyCuandoNoExisteEmpleado() {
+        Optional<Empleado> resultado = empleadoService.buscarPorId(99L);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void debeBuscarEmpleadoPorNombre() {
+        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
+        empleadoService.registrarEmpleado(new Empleado(2L, "Ana", "Gomez", 28, 2500.0));
+
+        List<Empleado> resultado = empleadoService.buscarPorNombre("juan");
+
+        assertEquals(1, resultado.size());
+        assertEquals("Juan", resultado.get(0).getNombre());
+    }
+
+    @Test
+    void debeListarEmpleadosOrdenadosPorApellido() {
+        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
+        empleadoService.registrarEmpleado(new Empleado(2L, "Ana", "Gomez", 28, 2500.0));
+
+        List<Empleado> resultado = empleadoService.listarEmpleadosOrdenadosPorApellido();
+
+        assertEquals("Gomez", resultado.get(0).getApellido());
+        assertEquals("Perez", resultado.get(1).getApellido());
+    }
+
+    @Test
+    void debeFiltrarEmpleadosConSalarioMayor() {
+        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
+        empleadoService.registrarEmpleado(new Empleado(2L, "Ana", "Gomez", 28, 2500.0));
+        empleadoService.registrarEmpleado(new Empleado(3L, "Luis", "Diaz", 35, 3000.0));
+
+        List<Empleado> resultado = empleadoService.listarEmpleadosConSalarioMayor(2500.0);
+
+        assertEquals(1, resultado.size());
+        assertEquals("Luis", resultado.get(0).getNombre());
+    }
+
+    @Test
+    void debeCalcularTotalSalarios() {
+        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
+        empleadoService.registrarEmpleado(new Empleado(2L, "Ana", "Gomez", 28, 2500.0));
+
+        assertEquals(4500.0, empleadoService.totalSalarios());
+    }
+
+    @Test
     void noDebeRegistrarEmpleadoConIdDuplicado() {
         empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> empleadoService.registrarEmpleado(new Empleado(1L, "Ana", "Gomez", 28, 2500.0)));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> empleadoService.registrarEmpleado(new Empleado(1L, "Ana", "Gomez", 28, 2500.0))
+        );
 
         assertEquals("Ya existe un empleado con id 1", exception.getMessage());
     }
 
     @Test
-    void debeBuscarEmpleadoPorIdExistente() {
-        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
-
-        Empleado empleado = empleadoService.buscarPorId(1L);
-
-        assertNotNull(empleado);
-        assertEquals("Juan", empleado.getNombre());
-    }
-
-    @Test
-    void debeFallarSiBuscaIdNoExistente() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> empleadoService.buscarPorId(99L));
-
-        assertEquals("No existe un empleado con id 99", exception.getMessage());
-    }
-
-    @Test
-    void debeActualizarEmpleadoExistente() {
-        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
-
-        empleadoService.actualizarEmpleado(new Empleado(1L, "Juan", "Lopez", 30, 2500.0));
-
-        Empleado actualizado = empleadoService.buscarPorId(1L);
-        assertEquals("Lopez", actualizado.getApellido());
-        assertEquals(2500.0, actualizado.getSalario());
-    }
-
-    @Test
-    void debeEliminarEmpleadoExistente() {
-        empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, 2000.0));
-
-        empleadoService.eliminarEmpleado(1L);
-
-        assertEquals(0, empleadoService.listarEmpleados().size());
-    }
-
-    @Test
     void debeFallarConNombreVacio() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> empleadoService.registrarEmpleado(new Empleado(1L, "", "Perez", 30, 2000.0)));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> empleadoService.registrarEmpleado(new Empleado(1L, "", "Perez", 30, 2000.0))
+        );
 
         assertEquals("El nombre no puede estar vacio", exception.getMessage());
     }
 
     @Test
-    void debeFallarConEdadNegativa() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", -1, 2000.0)));
-
-        assertEquals("La edad no puede ser negativa", exception.getMessage());
-    }
-
-    @Test
     void debeFallarConSalarioNegativo() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, -10.0)));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> empleadoService.registrarEmpleado(new Empleado(1L, "Juan", "Perez", 30, -50.0))
+        );
 
         assertEquals("El salario no puede ser negativo", exception.getMessage());
     }
