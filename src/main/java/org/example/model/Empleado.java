@@ -1,3 +1,5 @@
+package org.example.model;
+
 public class Empleado {
 // crear un emppleado con id tipo Long, nombre, apellido, edad y salario
 // il id debe ser long y estar en el constructor, el resto de los atributos deben ser privados y tener sus getters y setters
