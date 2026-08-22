@@ -8,4 +8,6 @@ public interface EmpleadoRepository {
     void guardar(Empleado empleado);
     Empleado buscarPorId(Long id);
     List<Empleado> listarTodos();
+    void actualizar(Empleado empleado);
+    void eliminarPorId(Long id);
 }
